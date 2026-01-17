@@ -8,7 +8,7 @@ if(empty($_SESSION['user']) || strtolower(trim($_SESSION['jabatan'])) != 'admin'
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ADMIN PANEL</title>
+    <title>ADMIN</title>
     <meta charset="UTF-8">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
