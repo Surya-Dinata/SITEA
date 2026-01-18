@@ -38,7 +38,7 @@ if(empty($_SESSION['user']) || !in_array($jabatan,['kepala pabrik'])){
                 <li>📈 Target Harian</li>
             </ul>
         </div>
-        <a href="logout.php">Logout</a>
+        <a href="../logout.php">Logout</a>
     </div>
 </body>
 </html>

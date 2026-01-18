@@ -1,36 +1,10 @@
-<?php 
-session_start(); 
-if (isset($_SESSION['user'])) { 
+<?php
+require_once 'config.php';
+
+// Jika sudah login, redirect ke home
+if (isset($_SESSION['user_id'])) { 
     header('Location: home.php'); 
     exit; 
-}
-
-$login_error = '';
-if (isset($_POST['login'])) {
-    $user = trim($_POST['username']);
-    $pass = trim($_POST['password']);
-    
-    $csvUrl = 'https://docs.google.com/spreadsheets/d/1D8ljWhv4GcBDuvh_xwQ3XLn5gW5tLLowVp7Ub9RHBz0/export?format=csv&gid=0';
-    $data = @file_get_contents($csvUrl);
-    
-    if ($data !== FALSE) {
-        $rows = array_slice(array_map('str_getcsv', explode("\n", trim($data))), 1);
-        foreach ($rows as $row) {
-            if (count($row) >= 4 && 
-                trim($row[1]) === $user && 
-                trim($row[2]) === $pass) {
-                
-                $_SESSION['user'] = trim($row[1]);
-                $_SESSION['jabatan'] = trim($row[3]);
-                session_write_close();
-                header('Location: home.php');
-                exit;
-            }
-        }
-        $login_error = '❌ Username atau password salah!';
-    } else {
-        $login_error = '❌ Tidak bisa akses Google Sheets!';
-    }
 }
 ?>
 
@@ -48,22 +22,52 @@ if (isset($_POST['login'])) {
             <div class="logo"><div class="logo-icon"></div></div>
             <h1>SITEA</h1>
             <p>Teh Hijau Gambung</p>
-            <form method="POST" action="">
+            
+            <form method="POST" action="proses_login.php" id="loginForm">
                 <div class="input-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" value="<?= isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>" required>
+                    <input type="text" id="username" name="username" required autofocus>
                 </div>
                 <div class="input-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <button type="submit" name="login">Masuk</button>
+                <button type="submit">Masuk</button>
             </form>
-            <?php if ($login_error): ?>
-                <div class="message error"><?= $login_error ?></div>
-            <?php endif; ?>
-            <div class="footer">Buat Akun</div>
+            
+            <div id="message"></div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch('proses_login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    messageDiv.innerHTML = '<div class="message success">✅ ' + data.message + '</div>';
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 500);
+                } else {
+                    messageDiv.innerHTML = '<div class="message error">❌ ' + data.message + '</div>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="message error">❌ Terjadi kesalahan</div>';
+            }
+        });
+    </script>
 </body>
 </html>
